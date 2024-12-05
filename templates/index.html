@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Manos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2rem;
+        }
+
+        #video-container {
+            margin-top: 20px;
+            position: relative;
+            width: 1000px;
+            height: 700px;
+            max-width: 100%;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            background: #0072ff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #005bb5;
+        }
+
+        #theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #fff;
+            color: #0072ff;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #theme-toggle:hover {
+            background: #0072ff;
+            color: #fff;
+        }
+
+        .gallery-link {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(to right, #000428, #004e92);
+            color: #ccc;
+        }
+
+        body.dark-mode h1 {
+            color: #fff;
+        }
+
+        body.dark-mode img {
+            border-color: #444;
+        }
+
+        /* Animación de la imagen que se mueve hacia la galería */
+        .capture-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 1s ease-in-out;
+        }
+
+        /* Cambiar posición de la imagen al finalizar la animación */
+        .move-to-gallery {
+            transform: translateY(1000px) translateX(700px);
+        }
+
+        #captured-image {
+            transition: transform 1s ease-in-out;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="theme-toggle">Cambiar Tema</button>
+    <h1>Detección de Manos en Tiempo Real</h1>
+    <div id="video-container">
+        <img src="/video_feed" alt="Video Feed" id="videoCam">
+    </div>
+    <div class="controls">
+        <button onclick="captureImage()">Capturar Imagen</button>
+    </div>
+    <div class="gallery-link">
+        <a href="/gallery" style="color: white;">Ver Galería de Imágenes</a>
+    </div>
+
+    <div id="captured-image-container"></div>
+
+    <script>
+        const button = document.getElementById('theme-toggle');
+        button.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+
+        let captureButton = document.querySelector("button");
+
+        function captureImage() {
+            // Deshabilitamos el botón de captura temporalmente para evitar múltiples clics
+            captureButton.disabled = true;
+
+            fetch('/capture_image')
+                .then(response => {
+                    // alert('Imagen capturada');
+                    // Aquí se podría agregar la animación de la imagen a la galería
+                    captureButton.disabled = false;
+
+                    // Eliminar el elemento videoCam del DOM
+                    const videoCam = document.getElementById('videoCam');
+                    videoCam.remove();
+
+                    // Crear un nuevo elemento img y agregarlo al DOM
+                    const newVideoCam = document.createElement('img');
+                    newVideoCam.src = '/video_feed';
+                    newVideoCam.alt = 'Video Feed';
+                    newVideoCam.id = 'videoCam';
+
+                    // Agregar el nuevo elemento al contenedor de video
+                    const videoContainer = document.getElementById('video-container');
+                    videoContainer.appendChild(newVideoCam);
+                })
+                .catch(error => {
+                    alert('Error al capturar la imagen');
+                    captureButton.disabled = false;
+                })
+        }
+    </script>
+</body>
+
+</html>
