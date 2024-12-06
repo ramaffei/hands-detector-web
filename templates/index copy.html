@@ -13,67 +13,8 @@
             margin: 0;
             padding: 0;
             display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            background-color: #2c3e50;
-            color: #fff;
-            display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .sidebar img {
-            width: 200px;
-            margin-bottom: 20px;
-            border-radius: 10%;
-        }
-
-        .menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            width: 100%;
-        }
-
-        .menu li {
-            width: 100%;
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        .menu li a {
-            text-decoration: none;
-            color: #fff;
-            font-size: 1.2rem;
-            padding: 10px 0;
-            display: block;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        .menu li a:hover {
-            background-color: #34495e;
-        }
-
-        .page-actions {
-            margin-top: 50px;
-        }
-
-        /* Main Content Styles */
-        .content {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
 
         h1 {
@@ -98,6 +39,10 @@
             height: auto;
         }
 
+        .controls {
+            margin-top: 20px;
+        }
+
         button {
             background: #0072ff;
             color: #fff;
@@ -106,11 +51,28 @@
             font-size: 1rem;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
         }
 
         button:hover {
             background: #005bb5;
+        }
+
+        #theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #fff;
+            color: #0072ff;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #theme-toggle:hover {
+            background: #0072ff;
+            color: #fff;
         }
 
         .gallery-link {
@@ -118,46 +80,56 @@
             font-size: 1.2rem;
         }
 
-        .gallery-link a {
-            color: white;
-            text-decoration: none;
+        body.dark-mode {
+            background: linear-gradient(to right, #000428, #004e92);
+            color: #ccc;
         }
 
-        .gallery-link a:hover {
-            text-decoration: underline;
+        body.dark-mode h1 {
+            color: #fff;
+        }
+
+        body.dark-mode img {
+            border-color: #444;
+        }
+
+        /* Animación de la imagen que se mueve hacia la galería */
+        .capture-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 1s ease-in-out;
+        }
+
+        /* Cambiar posición de la imagen al finalizar la animación */
+        .move-to-gallery {
+            transform: translateY(1000px) translateX(700px);
+        }
+
+        #captured-image {
+            transition: transform 1s ease-in-out;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <img src="https://i.ibb.co/7CMs3pZ/logo.png" alt="Mi Logo">
-        <ul class="menu">
-            <li><a href="/">Videocámara</a></li>
-            <li><a href="/gallery">Galería de Capturas</a></li>
-        </ul>
-        <ul class="menu page-actions">
-            <li><button id="reset-cam">Reiniciar Cámara</button></li>
-            <li>
-                <div class="controls">
-                    <button onclick="captureImage()">Capturar Imagen</button>
-                </div>
-            </li>
-            <li>
-                <button id="theme-toggle">Cambiar Tema</button>
-            </li>
-        </ul>
+    <button id="theme-toggle">Cambiar Tema</button>
+    <button id="reset-cam">Reiniciar Camara</button>
+    <h1>Detección de Manos en Tiempo Real</h1>
+    <div id="video-container">
+        <img src="/video_feed" alt="Video Feed" id="videoCam">
+    </div>
+    <div class="controls">
+        <button onclick="captureImage()">Capturar Imagen</button>
+    </div>
+    <div class="gallery-link">
+        <a href="/gallery" style="color: white;">Ver Galería de Imágenes</a>
     </div>
 
-    <!-- Main Content -->
-    <div class="content">
-
-        <h1>Detección de Manos en Tiempo Real</h1>
-        <div id="video-container">
-            <img src="/video_feed" alt="Video Feed" id="videoCam">
-        </div>
-    </div>
+    <div id="captured-image-container"></div>
 
     <script>
         const button = document.getElementById('theme-toggle');
@@ -173,16 +145,20 @@
         let captureButton = document.querySelector("button");
 
         function captureImage() {
+            // Deshabilitamos el botón de captura temporalmente para evitar múltiples clics
             captureButton.disabled = true;
+
             fetch('/capture_image')
                 .then(response => {
+                    // alert('Imagen capturada');
+                    // Aquí se podría agregar la animación de la imagen a la galería
                     captureButton.disabled = false;
                     return resetVideoCam();
                 })
                 .catch(error => {
                     alert('Error al capturar la imagen');
                     captureButton.disabled = false;
-                });
+                })
         }
 
         function resetVideoCam() {
@@ -205,6 +181,8 @@
             const videoContainer = document.getElementById('video-container');
             videoContainer.appendChild(newVideoCam);
         }
+
+
     </script>
 </body>
 
