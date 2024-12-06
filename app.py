@@ -1,4 +1,4 @@
-from flask import Flask, Response, render_template, send_from_directory
+from flask import Flask, Response, render_template, send_from_directory, request
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -14,9 +14,21 @@ IMAGE_FOLDER.mkdir(exist_ok=True)
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
+# Variable global para controlar el reinicio de la cámara
+cap = None
+
+def get_camera():
+    """Obtiene una nueva instancia de la cámara."""
+    global cap
+    if cap is not None:
+        cap.release()  # Asegurarse de liberar recursos
+    cap = cv2.VideoCapture(0)  # Crear una nueva instancia
+    return cap
+
 # Función para procesar el video y enviar los frames
 def generate_frames():
-    cap = cv2.VideoCapture(0)  # Cambia el índice si usas otra cámara
+    global cap
+    cap = get_camera()  # Siempre usar una nueva instancia de la cámara
     fps = 15  # Establece un FPS de 15
     frame_rate_delay = 1.0 / fps
     last_time = time.time()
@@ -62,23 +74,23 @@ def generate_frames():
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+# Ruta para capturar una imagen y guardarla en el servidor
+@app.route('/capture_image')
+def capture_image():
+    global cap
+    if cap is None:
+        cap = get_camera()
+    success, image = cap.read()
+    if success:
+        timestamp = int(time.time())
+        image_path = IMAGE_FOLDER / f"{timestamp}.png"
+        cv2.imwrite(str(image_path), image)
+    return 'Imagen capturada con éxito!'
+
 # Ruta principal
 @app.route('/')
 def index():
     return render_template('index.html')
-
-# Ruta para capturar una imagen y guardarla en el servidor
-@app.route('/capture_image')
-def capture_image():
-    # Capturar la imagen del feed de video
-    timestamp = int(time.time())
-    image_path = IMAGE_FOLDER / f"{timestamp}.png"
-    cap = cv2.VideoCapture(0)
-    success, image = cap.read()
-    if success:
-        cv2.imwrite(str(image_path), image)
-    cap.release()
-    return 'Imagen capturada con éxito!'
 
 # Ruta para mostrar la galería de imágenes capturadas
 @app.route('/gallery')

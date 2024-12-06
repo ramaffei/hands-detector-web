@@ -117,6 +117,7 @@
 
 <body>
     <button id="theme-toggle">Cambiar Tema</button>
+    <button id="reset-cam">Reiniciar Camara</button>
     <h1>Detección de Manos en Tiempo Real</h1>
     <div id="video-container">
         <img src="/video_feed" alt="Video Feed" id="videoCam">
@@ -132,8 +133,13 @@
 
     <script>
         const button = document.getElementById('theme-toggle');
+        const buttonReset = document.getElementById('reset-cam');
         button.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
+        });
+
+        buttonReset.addEventListener('click', () => {
+            resetVideoCam();
         });
 
         let captureButton = document.querySelector("button");
@@ -147,26 +153,36 @@
                     // alert('Imagen capturada');
                     // Aquí se podría agregar la animación de la imagen a la galería
                     captureButton.disabled = false;
-
-                    // Eliminar el elemento videoCam del DOM
-                    const videoCam = document.getElementById('videoCam');
-                    videoCam.remove();
-
-                    // Crear un nuevo elemento img y agregarlo al DOM
-                    const newVideoCam = document.createElement('img');
-                    newVideoCam.src = '/video_feed';
-                    newVideoCam.alt = 'Video Feed';
-                    newVideoCam.id = 'videoCam';
-
-                    // Agregar el nuevo elemento al contenedor de video
-                    const videoContainer = document.getElementById('video-container');
-                    videoContainer.appendChild(newVideoCam);
+                    return resetVideoCam();
                 })
                 .catch(error => {
                     alert('Error al capturar la imagen');
                     captureButton.disabled = false;
                 })
         }
+
+        function resetVideoCam() {
+            const videoCam = document.getElementById('videoCam');
+            videoCam.remove();
+
+            const newVideoCam = document.createElement('img');
+            newVideoCam.src = `/video_feed?timestamp=${new Date().getTime()}`;
+            newVideoCam.alt = 'Video Feed';
+            newVideoCam.id = 'videoCam';
+
+            newVideoCam.onload = () => {
+                console.log('Feed reiniciado correctamente');
+            };
+
+            newVideoCam.onerror = () => {
+                console.error('Error al reiniciar el feed');
+            };
+
+            const videoContainer = document.getElementById('video-container');
+            videoContainer.appendChild(newVideoCam);
+        }
+
+
     </script>
 </body>
 
