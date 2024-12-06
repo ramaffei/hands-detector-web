@@ -80,12 +80,33 @@ def capture_image():
     global cap
     if cap is None:
         cap = get_camera()
+
+    # Procesar la imagen desde la cámara
     success, image = cap.read()
     if success:
-        timestamp = int(time.time())
-        image_path = IMAGE_FOLDER / f"{timestamp}.png"
-        cv2.imwrite(str(image_path), image)
-    return 'Imagen capturada con éxito!'
+        with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+            # Procesar la imagen
+            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+            image.flags.writeable = False
+            results = hands.process(image)
+
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            # Dibujar puntos de las manos si se detectan
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+            # Guardar la imagen procesada
+            timestamp = int(time.time())
+            image_path = IMAGE_FOLDER / f"{timestamp}.png"
+            cv2.imwrite(str(image_path), image)
+
+        return f'Imagen capturada con éxito y guardada como {image_path.name}!'
+    else:
+        return 'No se pudo capturar la imagen.', 500
+
 
 # Ruta principal
 @app.route('/')
